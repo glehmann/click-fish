@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding:utf-8 -*-
 
 import ast
 import re
@@ -19,7 +20,6 @@ setup(
     author_email='gaetan.lehmann@gmail.com',
     url='https://github.com/glehmann/click-fish',
     license='MIT',
-    long_description=open('README.md').read(),
     py_modules=['click_fish'],
     install_requires=[
         'click',

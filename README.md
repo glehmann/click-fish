@@ -1,7 +1,8 @@
 # click-fish
 Fish completion for Click
 
-Add automatic completion support for [fish](https://fishshell.com) to [Click](http://click.pocoo.org)
+Add automatic completion support for [fish](https://fishshell.com) to
+[Click](http://click.pocoo.org)
 
 ## Usage
 
@@ -43,4 +44,4 @@ This can be easily accomplished:
 
 ## License
 
-Licensed under the MIT, see [LICENSE].
+Licensed under the MIT, see LICENSE.
