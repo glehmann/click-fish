@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+
+import click
+import click_fish
+import click._bashcomplete
+import os
+
+@click.command()
+@click.option('--shell', help='Shell type', type=click.Choice(['auto', 'bash', 'fish', 'zsh']), default='auto')
+@click.option('--install', is_flag=True, help='Install the completion')
+@click.pass_context
+def cli(ctx, shell, install):
+    """Shell completion installation example"""
+    name = ctx.find_root().info_name
+    envvar = '_%s_COMPLETE' % name.upper().replace('-', '_')
+    if shell == 'auto':
+        try:
+            import psutil
+            shell = psutil.Process(os.getpid()).parent().name()
+        except ImportError:
+            raise click.ClickException("psutil must be installed to detect the shell automatically.")
+    if shell == 'fish':
+        code = click_fish.get_completion_script(name, envvar)
+        path = os.environ['HOME'] + '/.config/fish/completions/%s.fish' % name
+        mode = 'w'
+    elif shell == 'bash':
+        code = click._bashcomplete.get_completion_script(name, envvar)
+        path = os.environ['HOME'] + '/.bash_completion'
+        mode = 'a'
+    elif shell == 'zsh':
+        compinit = 'autoload -U compinit && compinit'
+        bashcompinit = 'autoload -U bashcompinit && bashcompinit'
+        complete = click._bashcomplete.get_completion_script(name, envvar)
+        code = '\n'.join([compinit, bashcompinit, complete])
+        path = os.environ['HOME'] + '/.zshrc'
+        mode = 'a'
+    else:
+        raise click.ClickException('%s is not supported.' % shell)
+    if install:
+        d = os.path.dirname(path)
+        if not os.path.exists(d):
+            os.makedirs(d)
+        f = open(path, mode)
+        f.write(code)
+        f.write("\n")
+        f.close()
+        click.echo('%s completion installed in %s' % (shell, path))
+    else:
+        click.echo(code)
+
+if __name__ == "__main__":
+  cli()
