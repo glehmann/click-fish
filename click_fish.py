@@ -51,11 +51,11 @@ def get_choices(cli, prog_name, args, incomplete):
             if not isinstance(param, Option):
                 continue
             for opt in param.opts:
-              choices.append((opt, param.help))
+                choices.append((opt, param.help))
             for opt in param.secondary_opts:
-              # don't put the doc so fish won't group the primary and
-              # and secondary options
-              choices.append((opt, None))
+                # don't put the doc so fish won't group the primary and
+                # and secondary options
+                choices.append((opt, None))
     elif isinstance(ctx.command, MultiCommand):
         for name in ctx.command.list_commands(ctx):
             cmd = ctx.command.get_command(ctx, name)
@@ -99,6 +99,8 @@ def fishcomplete(cli, prog_name, complete_var, complete_instr):
 
 # patch click to support fish completion
 _bashcomplete = click.core._bashcomplete
+
+
 def _shellcomplete(cmd, prog_name, complete_var=None):
     """Internal handler for the bash completion support."""
     if complete_var is None:
@@ -112,5 +114,7 @@ def _shellcomplete(cmd, prog_name, complete_var=None):
             sys.exit(1)
     else:
         # call the non patched click implementation
-       _bashcomplete(cmd, prog_name, complete_var)
+        _bashcomplete(cmd, prog_name, complete_var)
+
+
 click.core._bashcomplete = _shellcomplete
