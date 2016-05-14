@@ -4,7 +4,7 @@ import sys
 import click
 from click.utils import echo
 from click.parser import split_arg_string
-from click.core import MultiCommand, Option
+from click.core import MultiCommand, Option, Argument
 
 __version__ = '0.1.0'
 
@@ -61,6 +61,10 @@ def get_choices(cli, prog_name, args, incomplete):
             cmd = ctx.command.get_command(ctx, name)
             if cmd:
                 choices.append((cmd.name, cmd.short_help))
+    else:
+        for param in ctx.command.params:
+            if isinstance(param, Argument) and isinstance(param.type, click.Choice):
+                choices += [(c, None) for c in param.type.choices]
 
     for item, help in choices:
         if item.startswith(incomplete):
