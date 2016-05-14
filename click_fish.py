@@ -24,13 +24,17 @@ def get_completion_script(prog_name, complete_var):
 
 
 def resolve_ctx(cli, prog_name, args):
-    ctx = cli.make_context(prog_name, args, resilient_parsing=True)
+    ctx = cli.make_context(prog_name, list(args), resilient_parsing=True)
     while ctx.args + ctx.protected_args and isinstance(ctx.command, MultiCommand):
         a = ctx.args + ctx.protected_args
         cmd = ctx.command.get_command(ctx, a[0])
         if cmd is None:
             return None
         ctx = cmd.make_context(a[0], a[1:], parent=ctx, resilient_parsing=True)
+    if args:
+        for param in ctx.command.params:
+            if isinstance(param, Option) and param.nargs > 0 and args[-1] in param.opts + param.secondary_opts:
+                return param
     return ctx
 
 
@@ -40,7 +44,9 @@ def get_choices(cli, prog_name, args, incomplete):
         return
 
     choices = []
-    if incomplete and not incomplete[:1].isalnum():
+    if isinstance(ctx, Option) and isinstance(ctx.type, click.Choice):
+        choices += [(c, None) for c in ctx.type.choices]
+    elif incomplete and not incomplete[:1].isalnum():
         for param in ctx.command.params:
             if not isinstance(param, Option):
                 continue
