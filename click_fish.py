@@ -31,10 +31,6 @@ def resolve_ctx(cli, prog_name, args):
         if cmd is None:
             return None
         ctx = cmd.make_context(a[0], a[1:], parent=ctx, resilient_parsing=True)
-    if args:
-        for param in ctx.command.params:
-            if isinstance(param, Option) and param.nargs > 0 and args[-1] in param.opts + param.secondary_opts:
-                return param
     return ctx
 
 
@@ -43,9 +39,15 @@ def get_choices(cli, prog_name, args, incomplete):
     if ctx is None:
         return
 
+    optctx = None
+    if args:
+        for param in ctx.command.params:
+            if isinstance(param, Option) and param.nargs > 0 and args[-1] in param.opts + param.secondary_opts:
+                optctx = param
+
     choices = []
-    if isinstance(ctx, Option) and isinstance(ctx.type, click.Choice):
-        choices += [(c, None) for c in ctx.type.choices]
+    if optctx:
+        choices += [(c, None) for c in optctx.type.complete(ctx, incomplete)]
     elif incomplete and not incomplete[:1].isalnum():
         for param in ctx.command.params:
             if not isinstance(param, Option):
@@ -63,8 +65,8 @@ def get_choices(cli, prog_name, args, incomplete):
                 choices.append((cmd.name, cmd.short_help))
     else:
         for param in ctx.command.params:
-            if isinstance(param, Argument) and isinstance(param.type, click.Choice):
-                choices += [(c, None) for c in param.type.choices]
+            if isinstance(param, Argument):
+                choices += [(c, None) for c in param.type.complete(ctx, incomplete)]
 
     for item, help in choices:
         if item.startswith(incomplete):
@@ -96,6 +98,17 @@ def fishcomplete(cli, prog_name, complete_var, complete_instr):
     elif complete_instr == 'complete-fish':
         return do_complete(cli, prog_name)
     return False
+
+
+def param_type_complete(self, ctx, incomplete):
+    return []
+click.types.ParamType.complete = param_type_complete
+
+
+def choice_complete(self, ctx, incomplete):
+    return [c for c in self.choices if c.startswith(incomplete)]
+click.types.Choice.complete = choice_complete
+
 
 # patch click to support fish completion
 _bashcomplete = click.core._bashcomplete
